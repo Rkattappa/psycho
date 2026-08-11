@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Deluxe Tape // Psycho</title>
+<title>Psycho // Jukebox</title>
+<!-- Google Fonts for retro/modern styling -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -29,7 +30,7 @@
     *{animation-duration:0.001s !important; animation-iteration-count:1 !important; transition:none !important;}
   }
 
-  /* ---------------- background video container ---------------- */
+  /* ---------------- background video container styling ---------------- */
   .bg-video-container{
     position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:0;overflow:hidden;background:#000;
   }
@@ -41,7 +42,7 @@
     position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(30,19,13,0.6) 100%);z-index:1;pointer-events:none;
   }
 
-  /* ---------------- stats & weather plaque ---------------- */
+  /* ---------------- stats, weather & clock plaque styling ---------------- */
   .plaque{position:fixed;top:max(14px, env(safe-area-inset-top));right:14px;z-index:5;
     background:rgba(48,31,21,0.65);backdrop-filter:blur(8px);
     border-radius:10px;padding:8px 12px;
@@ -53,7 +54,7 @@
   .dot{width:7px;height:7px;border-radius:50%;background:#4CAF6E;box-shadow:0 0 6px #4CAF6E;animation:pulse 1.8s ease-in-out infinite;flex-shrink:0;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
 
-  /* ---------------- main stage ---------------- */
+  /* ---------------- main layout stage positioning ---------------- */
   .stage{position:relative;z-index:2;width:100%;max-width:420px;margin:0 auto;
     height:calc(var(--vh) * 100);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
     padding:16px 16px max(16px, env(safe-area-inset-bottom));}
@@ -63,7 +64,7 @@
   h1{font-family:'Yatra One',cursive;font-weight:400;font-size:clamp(22px,6vw,30px);text-align:center;margin:0 0 8px;
     color:var(--cream);text-shadow:0 2px 8px rgba(0,0,0,0.8);}
 
-  /* ---------------- mood selector pills ---------------- */
+  /* ---------------- mood selector pill filters ---------------- */
   .mood-selector{
     width:100%;display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;
     scrollbar-width:none;
@@ -76,6 +77,7 @@
   }
   .mood-pill.active{background:var(--gold);color:#2A1A16;border-color:var(--gold-bright);font-weight:600;}
 
+  /* ---------------- player card wrapper ---------------- */
   .player-bar{
     width:100%;
     background:rgba(20,12,10,0.7);
@@ -96,6 +98,7 @@
   .now-playing-block.paused .marquee{animation-play-state:paused;}
   .np-meta{font-size:10px;color:var(--cream);opacity:0.75;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'IBM Plex Mono',monospace;}
 
+  /* ---------------- media playback control buttons ---------------- */
   .controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:4px;}
   .btn-icon{background:none;border:none;color:var(--cream);cursor:pointer;opacity:0.8;display:flex;align-items:center;justify-content:center;padding:6px;transition:opacity 0.15s, transform 0.15s;}
   .btn-icon:hover{opacity:1;}
@@ -108,7 +111,7 @@
   .play-btn:active{transform:scale(0.92);}
   .play-btn svg{width:18px;height:18px;fill:#2A1A16;}
 
-  /* ---------------- adjustments row (volume & brightness) ---------------- */
+  /* ---------------- volume & brightness slider UI grid ---------------- */
   .adjustments-grid{
     display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding-top:8px;
     border-top:1px solid rgba(255,255,255,0.1);
@@ -125,12 +128,13 @@
 
   .footer-note{text-align:center;font-size:9px;color:var(--cream);opacity:0.5;margin-top:8px;font-family:'IBM Plex Mono',monospace;}
 
+  /* Hidden container initialization wrap for YouTube iframe API */
   #yt-player-wrap{position:fixed;bottom:0;left:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none;}
 </style>
 </head>
 <body>
 
-<!-- Background Video Layer -->
+<!-- Background Video Loop Container (Direct MP4 source link) -->
 <div class="bg-video-container" aria-hidden="true">
   <video autoplay muted loop playsinline crossorigin="anonymous">
     <source src="https://assets.mixkit.co/videos/preview/mixkit-silhouette-of-palm-trees-at-sunset-1240-large.mp4" type="video/mp4">
@@ -138,6 +142,7 @@
   <div class="bg-overlay"></div>
 </div>
 
+<!-- Live Stats Plaque (Online user count, geolocation, weather, and real-time clock) -->
 <div class="plaque">
   <div class="plaque-row"><span class="dot"></span><span id="onlineCount">1 here now</span></div>
   <div class="plaque-row">📍<span id="geoLocLabel">Detecting location...</span></div>
@@ -149,21 +154,22 @@
   <div class="eyebrow">now spinning by the ghat</div>
   <h1>Psycho</h1>
 
-  <!-- Mood / Genre Selector Bar -->
+  <!-- Mood / Genre Selector Bar with Extended Playlists -->
   <div class="mood-selector" id="moodSelector">
     <button class="mood-pill active" data-mood="90s">90s Jukebox</button>
-    <button class="mood-pill" data-mood="sad">Sad & Soulful</button>
-    <button class="mood-pill" data-mood="chill">Chill Vibes</button>
-    <button class="mood-pill" data-mood="rock">Rock Anthems</button>
-    <button class="mood-pill" data-mood="classic">Classic Melodies</button>
+    <button class="mood-pill" data-mood="sad">Sad</button>
+    <button class="mood-pill" data-mood="chill">Chill</button>
+    <button class="mood-pill" data-mood="rock">Rock</button>
+    <button class="mood-pill" data-mood="classic">Classic</button>
     <button class="mood-pill" data-mood="international">International</button>
-    <button class="mood-pill" data-mood="lofi">Lofi Beats</button>
-    <button class="mood-pill" data-mood="80s">80s Retro</button>
-    <button class="mood-pill" data-mood="70s">70s Gold</button>
-    <button class="mood-pill" data-mood="latest">Latest Hits</button>
-    <button class="mood-pill" data-mood="launched">Just Launched</button>
+    <button class="mood-pill" data-mood="lofi">Lofi</button>
+    <button class="mood-pill" data-mood="80s">80s</button>
+    <button class="mood-pill" data-mood="70s">70s</button>
+    <button class="mood-pill" data-mood="latest">Latest</button>
+    <button class="mood-pill" data-mood="launched">Just launched</button>
   </div>
 
+  <!-- Music Player Controller Bar UI -->
   <div class="player-bar">
     <div class="now-playing-block paused" id="nowPlayingWrap">
       <div class="np-label" id="npLabel">Loading playlist...</div>
@@ -173,6 +179,7 @@
       <div class="np-meta" id="npMeta">Psycho Infinite Jukebox</div>
     </div>
 
+    <!-- Play, Previous, and Next Action Buttons -->
     <div class="controls">
       <button class="btn-icon" id="prevBtn" aria-label="Previous track">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 10 6V6z"/></svg>
@@ -185,7 +192,7 @@
       </button>
     </div>
 
-    <!-- Sliders for Volume & Brightness -->
+    <!-- Custom Adjustments Grid (Volume & Brightness Sliders) -->
     <div class="adjustments-grid">
       <div class="slider-control">
         <label><span>VOLUME</span><span id="volVal">100%</span></label>
@@ -204,15 +211,18 @@
   <div class="footer-note">Infinite mood-based multi-genre streams · tap mood to switch</div>
 </div>
 
+<!-- Hidden YouTube Iframe Target Container -->
 <div id="yt-player-wrap"><div id="yt-player"></div></div>
 
 <script>
+  /* ---------------- Dynamic Viewport Height Adjustment for Mobile Browsers ---------------- */
   function setVH(){
     document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
   }
   setVH();
   window.addEventListener('resize', setVH);
 
+  /* ---------------- Geolocation, Local Weather, and Real-Time Clock Initialization ---------------- */
   async function initGeoAndWeather() {
     const geoLabel = document.getElementById('geoLocLabel');
     const weatherLabel = document.getElementById('weatherLabel');
@@ -255,6 +265,7 @@
   }
   initGeoAndWeather();
 
+  /* ---------------- Active User Presence Tracker (LocalStorage Heartbeat) ---------------- */
   const SESSION_ID = 'sess-' + Math.random().toString(36).slice(2);
   const onlineEl = document.getElementById('onlineCount');
   
@@ -276,19 +287,19 @@
   trackPresence();
   setInterval(trackPresence, 10000);
 
-  // Extended massive playlists mapped to moods/genres (Long YouTube Playlists)
+  /* ---------------- Extended Massive Long Playlists Mapped to Moods/Genres ---------------- */
   const PLAYLISTS = {
-    "90s": "PLinVjP-aRmlv0g0_1w8lOs9fkfGRunKzi",     // Bollywood 90s Hit Songs (Massive archive)
-    "sad": "PL4fGSI1pDJn6O1WUexxMDqSzDmeRGzn-p",     // Sad & Emotional Ballads
-    "chill": "PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj",   // Chill Lofi / Relaxing
-    "rock": "PL6B30C4D024508492",                    // Classic & Alternative Rock
-    "classic": "PLZHQObOWTQDPD3MswM2xVvBmG4PKFxPkk", // Timeless Classics
-    "international": "PLw9iWmRUz5TNW6bI4H0z3Z7e0o9O1tO2v", // Global Chart Hits
-    "lofi": "PLDWkWqjvjV8WpB5o6A42XnUjM_dFw7aR5",    // Lofi Hip Hop Beats
-    "80s": "PL45EE7627448A6F06",                    // 80s Pop & Retro Anthems
-    "70s": "PL7313FB79CD2E3A06",                    // 70s Retro Grooves
-    "latest": "PLgzTt0k8mXzE1-Pj33j52u4qW5X_b0Oq7",  // Latest Chartbusters
-    "launched": "PLMC9KNkIncKvKuZ3xJd_-2L4W4wV8H0oR"  // Just Launched Fresh Drops
+    "90s": "PLinVjP-aRmlv0g0_1w8lOs9fkfGRunKzi",     
+    "sad": "PL4fGSI1pDJn6O1WUexxMDqSzDmeRGzn-p",     
+    "chill": "PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj",   
+    "rock": "PL6B30C4D024508492",                    
+    "classic": "PLZHQObOWTQDPD3MswM2xVvBmG4PKFxPkk", 
+    "international": "PLw9iWmRUz5TNW6bI4H0z3Z7e0o9O1tO2v", 
+    "lofi": "PLDWkWqjvjV8WpB5o6A42XnUjM_dFw7aR5",    
+    "80s": "PL45EE7627448A6F06",                    
+    "70s": "PL7313FB79CD2E3A06",                    
+    "latest": "PLgzTt0k8mXzE1-Pj33j52u4qW5X_b0Oq7",  
+    "launched": "PLMC9KNkIncKvKuZ3xJd_-2L4W4wV8H0oR"  
   };
 
   let currentMood = "90s";
@@ -371,19 +382,24 @@
   document.getElementById('nextBtn').addEventListener('click', () => { if(ytReady) player.nextVideo(); });
   document.getElementById('prevBtn').addEventListener('click', () => { if(ytReady) player.previousVideo(); });
 
-  // Mood pill selector event listeners
+  /* ---------------- Fixed Mood Selector Filter Click Handlers ---------------- */
   document.querySelectorAll('.mood-pill').forEach(pill => {
     pill.addEventListener('click', (e) => {
       document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('active'));
       e.target.classList.add('active');
       currentMood = e.target.getAttribute('data-mood');
       
-      if(ytReady && player.loadPlaylist) {
-        player.loadPlaylist({
-          list: PLAYLISTS[currentMood],
-          listType: 'playlist'
-        });
+      if(ytReady && player) {
+        if(typeof player.loadPlaylist === 'function') {
+          player.loadPlaylist({
+            list: PLAYLISTS[currentMood],
+            listType: 'playlist',
+            index: 0,
+            suggestedQuality: 'small'
+          });
+        }
         updatePlaybackUI(`switched to ${currentMood}`);
+        setTimeout(updateNowPlaying, 1000);
       }
     });
   });
@@ -407,4 +423,3 @@
 
 </body>
 </html>
-
