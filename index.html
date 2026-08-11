@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deluxe Tape // 90s Bollywood by the Ghat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#D4A94A;
+    --gold-bright:#E9C876;
+    --cream:#F6EFD8;
+    --teal-glow:#3FA79E;
+    --wood-dark:#301F15;
+    --leaf:#4C7A34;
+    --leaf-dark:#3A5E28;
+    --vh: 1vh;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:calc(var(--vh) * 100);overflow:hidden;}
+  body{
+    font-family:'Poppins',sans-serif;
+    color:var(--cream);
+    position:relative;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; animation-iteration-count:1 !important; transition:none !important;}
+  }
+
+  /* ---------------- riverbank scene (fully visible, fixed backdrop) ---------------- */
+  .scene{position:fixed;top:0;left:0;right:0;height:calc(var(--vh) * 100);z-index:0;overflow:hidden;}
+  .sky{position:absolute;inset:0;background:linear-gradient(180deg,#BFE3D0 0%,#DCEFC9 32%,#EAE3B6 58%,#CFDE9E 100%);}
+  .sun{position:absolute;top:8%;right:14%;width:90px;height:90px;border-radius:50%;
+    background:radial-gradient(circle,#FFF6D6 0%,#FCE9A8 55%,rgba(252,233,168,0) 75%);filter:blur(1px);}
+  .hills{position:absolute;left:0;right:0;bottom:30%;height:26%;}
+  .hills svg{width:100%;height:100%;display:block;}
+  .river{position:absolute;left:0;right:0;bottom:20%;height:16%;
+    background:linear-gradient(180deg,#7FC4CC 0%,#4E97A3 55%,#3B7E8C 100%);overflow:hidden;}
+  .river::before{content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(115deg, rgba(255,255,255,0.28) 0 3px, transparent 3px 26px);
+    animation:shimmer 6s linear infinite;opacity:0.6;}
+  @keyframes shimmer{from{background-position-x:0;}to{background-position-x:220px;}}
+  .grass-fore{position:absolute;left:0;right:0;bottom:0;height:24%;
+    background:linear-gradient(180deg,#6FA24E 0%,#4C7A2F 60%,#3C6423 100%);
+    clip-path:polygon(0 22%, 6% 14%, 14% 24%, 22% 10%, 30% 20%, 40% 8%, 50% 18%, 60% 6%, 70% 16%, 80% 5%, 90% 15%, 100% 8%, 100% 100%, 0 100%);}
+  .tree{position:absolute;bottom:18%;transform-origin:bottom center;animation:sway 4.5s ease-in-out infinite;}
+  .tree .trunk{width:10px;height:46px;background:linear-gradient(90deg,#5C3A22,#3E2716);margin:0 auto;border-radius:2px;}
+  .tree .canopy{width:76px;height:76px;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 35% 30%, #6FA24E, var(--leaf) 55%, var(--leaf-dark) 100%);margin:0 auto -18px;}
+  .tree.small .canopy{width:52px;height:52px;}
+  .tree.small .trunk{height:32px;}
+  @keyframes sway{0%,100%{transform:rotate(-1.6deg);}50%{transform:rotate(1.6deg);}}
+  .bird{position:absolute;width:22px;height:10px;top:14%;opacity:0.75;animation:fly 22s linear infinite;}
+  .bird::before,.bird::after{content:'';position:absolute;top:0;width:11px;height:8px;border-top:2px solid var(--wood-dark);border-radius:50% 50% 0 0;}
+  .bird::before{left:0;transform:rotate(20deg);}
+  .bird::after{right:0;transform:rotate(-20deg);}
+  .bird.b2{top:20%;animation-duration:28s;animation-delay:-9s;opacity:0.55;transform:scale(0.8);}
+  .bird.b3{top:10%;animation-duration:34s;animation-delay:-20s;opacity:0.45;transform:scale(0.65);}
+  @keyframes fly{0%{transform:translateX(-8vw) translateY(0);}50%{transform:translateX(55vw) translateY(-14px);}100%{transform:translateX(112vw) translateY(0);}}
+  .duck{position:absolute;bottom:23.5%;width:22px;height:16px;animation:bob 3.2s ease-in-out infinite, drift 26s ease-in-out infinite;}
+  .duck .body{position:absolute;bottom:0;left:0;width:20px;height:11px;background:#3E2716;border-radius:50% 50% 45% 45%;}
+  .duck .head{position:absolute;bottom:8px;left:11px;width:9px;height:9px;background:#3E2716;border-radius:50%;}
+  .duck .beak{position:absolute;bottom:11px;left:19px;width:5px;height:3px;background:var(--gold);border-radius:1px;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+  @keyframes drift{0%,100%{margin-left:0;}50%{margin-left:34px;}}
+  .deer{position:absolute;bottom:19%;width:46px;height:34px;opacity:0.8;animation:walk 40s linear infinite;}
+  .deer .db{position:absolute;bottom:10px;left:6px;width:30px;height:14px;background:#7A5433;border-radius:40% 40% 35% 35%;}
+  .deer .dh{position:absolute;bottom:16px;left:30px;width:12px;height:12px;background:#7A5433;border-radius:40%;}
+  .deer .leg{position:absolute;bottom:0;width:3px;height:11px;background:#5C3E22;}
+  .deer .l1{left:10px;} .deer .l2{left:18px;} .deer .l3{left:26px;} .deer .l4{left:32px;}
+  @keyframes walk{0%{transform:translateX(-15vw) scaleX(1);}48%{transform:translateX(60vw) scaleX(1);}50%{transform:translateX(60vw) scaleX(-1);}98%{transform:translateX(-15vw) scaleX(-1);}100%{transform:translateX(-15vw) scaleX(1);}}
+
+  /* ---------------- stats plaque ---------------- */
+  .plaque{position:fixed;top:max(14px, env(safe-area-inset-top));right:14px;z-index:5;
+    background:rgba(48,31,21,0.55);backdrop-filter:blur(6px);
+    border-radius:10px;padding:8px 12px;
+    box-shadow:0 8px 18px -6px rgba(0,0,0,0.4);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--cream);
+    display:flex;flex-direction:column;gap:4px;
+    border:1px solid rgba(212,169,74,0.35);}
+  .plaque-row{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#4CAF6E;box-shadow:0 0 6px #4CAF6E;animation:pulse 1.8s ease-in-out infinite;flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+
+  /* ---------------- transparent playback bar ---------------- */
+  .stage{position:relative;z-index:1;width:100%;max-width:400px;margin:0 auto;
+    height:calc(var(--vh) * 100);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    padding:16px 16px max(16px, env(safe-area-inset-bottom));}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:clamp(9px,2.4vw,10.5px);letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--wood-dark);text-align:center;opacity:0.85;margin-bottom:4px;}
+  h1{font-family:'Yatra One',cursive;font-weight:400;font-size:clamp(24px,7vw,34px);text-align:center;margin:0 0 clamp(10px,3vh,26px);
+    color:var(--wood-dark);text-shadow:0 2px 0 rgba(255,255,255,0.25);}
+
+  .player-bar{
+    width:100%;
+    background:rgba(20,12,10,0.32);
+    backdrop-filter:blur(10px) saturate(1.1);
+    -webkit-backdrop-filter:blur(10px) saturate(1.1);
+    border:1px solid rgba(212,169,74,0.3);
+    border-radius:18px;
+    padding:clamp(12px,2.6vh,16px) 18px clamp(10px,2vh,14px);
+    box-shadow:0 20px 40px -18px rgba(0,0,0,0.5);
+  }
+
+  .now-playing-block{margin-bottom:12px;}
+  .np-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal-glow);opacity:0.9;margin-bottom:4px;}
+  .marquee-wrap{overflow:hidden;white-space:nowrap;}
+  .marquee{display:inline-block;font-family:'Yatra One',cursive;font-size:18px;padding-left:0;color:var(--cream);
+    animation:scroll-left 16s linear infinite;padding-left:100%;}
+  @keyframes scroll-left{from{transform:translateX(0);}to{transform:translateX(-100%);}}
+  .now-playing-block.paused .marquee{animation-play-state:paused;}
+  .np-meta{font-size:11px;color:var(--cream);opacity:0.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'IBM Plex Mono',monospace;}
+
+  .controls{display:flex;align-items:center;justify-content:center;gap:20px;}
+  .btn-icon{background:none;border:none;color:var(--cream);cursor:pointer;opacity:0.8;display:flex;align-items:center;justify-content:center;padding:8px;transition:opacity 0.15s, transform 0.15s;}
+  .btn-icon:hover{opacity:1;}
+  .btn-icon:active{transform:scale(0.9);}
+  .btn-icon svg{width:22px;height:22px;}
+  .play-btn{width:54px;height:54px;border-radius:50%;background:linear-gradient(155deg, var(--gold-bright), var(--gold));border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 8px 18px -4px rgba(212,169,74,0.55), inset 0 1px 0 rgba(255,255,255,0.5);
+    transition:transform 0.15s;flex-shrink:0;}
+  .play-btn:active{transform:scale(0.92);}
+  .play-btn svg{width:22px;height:22px;fill:#2A1A16;}
+  .play-btn.buffering{animation:buffer-pulse 1s ease-in-out infinite;}
+  @keyframes buffer-pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  .status-row{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream);opacity:0.55;margin-top:10px;}
+  .yt-fallback{display:none;text-align:center;margin-top:8px;}
+  .yt-fallback a{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--teal-glow);text-decoration:underline;}
+
+  .footer-note{text-align:center;font-size:10px;color:var(--wood-dark);opacity:0.6;margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+
+  #yt-player-wrap{position:fixed;bottom:0;left:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <div class="hills">
+    <svg viewBox="0 0 400 100" preserveAspectRatio="none">
+      <path d="M0,60 Q60,20 130,50 T260,40 T400,55 L400,100 L0,100 Z" fill="#8FB06E" opacity="0.55"></path>
+      <path d="M0,75 Q80,45 160,68 T340,60 T400,70 L400,100 L0,100 Z" fill="#6E9950" opacity="0.7"></path>
+    </svg>
+  </div>
+  <div class="river"></div>
+  <div class="grass-fore"></div>
+
+  <div class="tree" style="left:6%;"><div class="canopy"></div><div class="trunk"></div></div>
+  <div class="tree small" style="left:16%;bottom:20%;animation-delay:-1.2s;"><div class="canopy"></div><div class="trunk"></div></div>
+  <div class="tree" style="right:8%;animation-delay:-2.4s;"><div class="canopy"></div><div class="trunk"></div></div>
+  <div class="tree small" style="right:20%;bottom:20%;animation-delay:-3.1s;"><div class="canopy"></div><div class="trunk"></div></div>
+
+  <div class="bird" style="left:0;"></div>
+  <div class="bird b2" style="left:0;"></div>
+  <div class="bird b3" style="left:0;"></div>
+
+  <div class="duck" style="left:30%;animation-delay:-1s;"><div class="body"></div><div class="head"></div><div class="beak"></div></div>
+  <div class="duck" style="left:55%;animation-delay:-2.4s;"><div class="body"></div><div class="head"></div><div class="beak"></div></div>
+  <div class="duck" style="left:70%;animation-delay:-0.4s;"><div class="body"></div><div class="head"></div><div class="beak"></div></div>
+
+  <div class="deer"><div class="db"></div><div class="dh"></div><div class="leg l1"></div><div class="leg l2"></div><div class="leg l3"></div><div class="leg l4"></div></div>
+</div>
+
+<div class="plaque">
+  <div class="plaque-row"><span class="dot"></span><span id="onlineCount">— here now</span></div>
+  <div class="plaque-row">👣<span id="visitCount">— all-time visits</span></div>
+</div>
+
+<div class="stage">
+  <div class="eyebrow">now spinning by the ghat</div>
+  <h1>Deluxe Tape</h1>
+
+  <div class="player-bar">
+    <div class="now-playing-block paused" id="nowPlayingWrap">
+      <div class="np-label" id="npLabel">Track — / 2,807</div>
+      <div class="marquee-wrap">
+        <span class="marquee" id="marqueeText">Press play to start the tape —</span>
+      </div>
+      <div class="np-meta" id="npMeta">Bollywood 90's Hit Songs · Tips Official</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-icon" id="prevBtn" aria-label="Previous track">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 10 6V6z"/></svg>
+      </button>
+      <button class="play-btn" id="playBtn" aria-label="Play">
+        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="btn-icon" id="nextBtn" aria-label="Next track">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4.5 6v12l10-6z"/></svg>
+      </button>
+    </div>
+    <div class="status-row" id="statusRow">tap play to load the tape</div>
+    <div class="yt-fallback" id="ytFallback">Not playing? <a id="ytFallbackLink" href="#" target="_blank" rel="noopener">Open this track on YouTube</a></div>
+  </div>
+
+  <div class="footer-note">2,807-song 90s Bollywood jukebox · tap next to skip around</div>
+</div>
+
+<div id="yt-player-wrap"><div id="yt-player"></div></div>
+
+<script>
+  /* ---- viewport height that adapts to real device screen / mobile chrome ---- */
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+
+  /* ---- player ---- */
+  const PLAYLIST_ID = "PLinVjP-aRmlv0g0_1w8lOs9fkfGRunKzi"; // Bollywood 90's Hit Songs — Tips Official, 2,807 tracks
+  let player, isPlaying = false, ytReady = false, started = false, pendingPlay = false, errorSkips = 0;
+
+  const nowPlayingWrap = document.getElementById('nowPlayingWrap');
+  const npLabel = document.getElementById('npLabel');
+  const marqueeText = document.getElementById('marqueeText');
+  const npMeta = document.getElementById('npMeta');
+  const statusRow = document.getElementById('statusRow');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const ytFallback = document.getElementById('ytFallback');
+  const ytFallbackLink = document.getElementById('ytFallbackLink');
+
+  function updatePlaybackUI(msg){
+    nowPlayingWrap.classList.toggle('paused', !isPlaying);
+    playIcon.innerHTML = isPlaying ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+    statusRow.textContent = msg || (isPlaying ? 'now playing' : (started ? 'paused' : 'tap play to load the tape'));
+  }
+
+  function updateNowPlaying(){
+    try{
+      const data = player.getVideoData();
+      if(data && data.title){
+        marqueeText.textContent = data.title + '   —   ' + (data.author || '') + '   —   ';
+        npMeta.textContent = (data.author || "Bollywood 90's Hit Songs") + ' · Tips Official jukebox';
+        if(data.video_id){
+          ytFallbackLink.href = 'https://www.youtube.com/watch?v=' + data.video_id;
+        }
+      }
+      const idx = (player.getPlaylistIndex && player.getPlaylistIndex() >= 0) ? player.getPlaylistIndex() : null;
+      if(idx !== null){ npLabel.textContent = 'Track ' + (idx+1) + ' / 2,807'; }
+    }catch(e){ /* ignore */ }
+  }
+
+  function onYouTubeIframeAPIReady(){
+    player = new YT.Player('yt-player', {
+      height:'200', width:'200',
+      playerVars:{ listType:'playlist', list: PLAYLIST_ID, playsinline:1, origin: window.location.origin },
+      events:{ onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
+    });
+  }
+  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+  function onPlayerReady(){
+    ytReady = true;
+    if(pendingPlay){ pendingPlay = false; player.playVideo(); }
+  }
+
+  function onPlayerStateChange(e){
+    if(e.data === YT.PlayerState.PLAYING){
+      isPlaying = true; started = true; errorSkips = 0;
+      ytFallback.style.display = 'none';
+      updateNowPlaying(); updatePlaybackUI();
+    } else if(e.data === YT.PlayerState.PAUSED){
+      isPlaying = false; updatePlaybackUI();
+    } else if(e.data === YT.PlayerState.BUFFERING){
+      updatePlaybackUI('loading track…');
+    } else if(e.data === YT.PlayerState.CUED){
+      updateNowPlaying();
+    }
+  }
+
+  function onPlayerError(e){
+    // Video unavailable / embedding disabled / restricted — auto-skip, but stop after a few tries
+    errorSkips++;
+    if(errorSkips <= 6){
+      updatePlaybackUI('track unavailable, skipping…');
+      setTimeout(() => { if(ytReady) player.nextVideo(); }, 600);
+    } else {
+      updatePlaybackUI('having trouble loading this jukebox');
+      ytFallback.style.display = 'block';
+    }
+  }
+
+  playBtn.addEventListener('click', () => {
+    if(!ytReady){
+      pendingPlay = true;
+      updatePlaybackUI('loading tape…');
+      return;
+    }
+    if(isPlaying){ player.pauseVideo(); }
+    else { player.playVideo(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if(ytReady){ player.nextVideo(); } else { pendingPlay = true; }
+  });
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if(ytReady){ player.previousVideo(); }
+  });
+
+  updatePlaybackUI();
+
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.body.appendChild(tag);
+
+  /* ---------------- presence + visit counter ---------------- */
+  const SESSION_ID = (crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Math.random().toString(36).slice(2));
+  const onlineEl = document.getElementById('onlineCount');
+  const visitEl = document.getElementById('visitCount');
+  const ONLINE_WINDOW_MS = 45000;
+
+  async function heartbeat(){
+    try{ await window.storage.set('presence:' + SESSION_ID, String(Date.now()), true); }catch(err){}
+  }
+
+  async function refreshOnlineCount(){
+    try{
+      const listResult = await window.storage.list('presence:', true);
+      const keys = (listResult && listResult.keys) ? listResult.keys : [];
+      const now = Date.now();
+      let count = 0;
+      const results = await Promise.all(keys.map(async k => {
+        try{ const r = await window.storage.get(k, true); return r ? Number(r.value) : 0; }
+        catch(e){ return 0; }
+      }));
+      results.forEach(ts => { if(now - ts < ONLINE_WINDOW_MS) count++; });
+      if(count < 1) count = 1;
+      onlineEl.textContent = count + ' here now';
+    }catch(err){ onlineEl.textContent = '1 here now'; }
+  }
+
+  async function bumpVisitCount(){
+    try{
+      let total = 0;
+      try{ const existing = await window.storage.get('stats:total-visits', true); total = existing ? Number(existing.value) || 0 : 0; }
+      catch(e){ total = 0; }
+      total += 1;
+      await window.storage.set('stats:total-visits', String(total), true);
+      visitEl.textContent = total.toLocaleString() + ' all-time visits';
+    }catch(err){ visitEl.textContent = 'visits unavailable'; }
+  }
+
+  heartbeat();
+  bumpVisitCount();
+  refreshOnlineCount();
+  setInterval(heartbeat, 20000);
+  setInterval(refreshOnlineCount, 20000);
+</script>
+
+</body>
+</html>
