@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Psycho // Jukebox</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Leaflet CSS for Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<style>
+  :root {
+    /* Default Light Mode Variables */
+    --bg-color: #f0f2f5;
+    --text-primary: #1c1e21;
+    --text-secondary: #606770;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: rgba(0, 0, 0, 0.08);
+    --accent: #D4A94A;
+    --accent-glow: rgba(212, 169, 74, 0.4);
+    --btn-text: #ffffff;
+    --shadow: 0 10px 30px rgba(0,0,0,0.1);
+    --map-filter: none;
+    --vh: 1vh;
+    --track-bg: rgba(0,0,0,0.1);
+    --user-blip: #4CAF6E;
+  }
+
+  [data-theme="dark"] {
+    /* Dark Mode Variables */
+    --bg-color: #121212;
+    --text-primary: #F6EFD8;
+    --text-secondary: #A0A0A0;
+    --card-bg: rgba(20, 12, 10, 0.85);
+    --card-border: rgba(212, 169, 74, 0.35);
+    --accent: #D4A94A;
+    --accent-glow: rgba(212, 169, 74, 0.6);
+    --btn-text: #2A1A16;
+    --shadow: 0 20px 40px -18px rgba(0,0,0,0.8);
+    /* Inverts map colors for dark mode aesthetic */
+    --map-filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
+    --track-bg: rgba(255,255,255,0.2);
+    --user-blip: #3FA79E;
+  }
+
+  * { box-sizing: border-box; }
+  
+  html, body { 
+    margin: 0; padding: 0; 
+    height: calc(var(--vh) * 100); 
+    overflow: hidden; 
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-color);
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  /* ---------------- Map Background ---------------- */
+  #map-bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%; z-index: 0;
+  }
+  .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-control-attribution {
+    filter: var(--map-filter);
+    transition: filter 0.4s ease;
+  }
+  .leaflet-interactive { outline: none; }
+
+  /* Map pulsing blip animations for users */
+  .user-pulse-blip {
+    background: var(--user-blip);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--user-blip);
+    animation: blip-pulse 2.5s infinite;
+  }
+  @keyframes blip-pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    50% { transform: scale(1.5); opacity: 0.2; }
+    100% { transform: scale(0.8); opacity: 0.8; }
+  }
+
+  /* Overlay to make UI readable over map */
+  .bg-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, var(--bg-color) 0%, transparent 40%, var(--bg-color) 100%);
+    opacity: 0.85; z-index: 1; pointer-events: none;
+    transition: background 0.3s;
+  }
+
+  /* ---------------- Main UI Layout ---------------- */
+  .layout-wrapper {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; justify-content: space-between;
+    height: 100%; width: 100%; max-width: 450px; margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    pointer-events: none; /* Let map be draggable through empty spaces */
+  }
+  
+  .layout-wrapper > * { pointer-events: auto; }
+
+  /* ---------------- Header (Flex Mode Stats) ---------------- */
+  .top-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    width: 100%; gap: 10px;
+  }
+
+  .stats-flex {
+    display: flex; flex-direction: column; gap: 6px;
+    background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 12px 14px; box-shadow: var(--shadow);
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    color: var(--text-primary); transition: all 0.3s ease;
+  }
+  
+  .stats-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+  .theme-toggle-btn {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-radius: 50%; width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s;
+    font-size: 16px;
+  }
+  .theme-toggle-btn:active { transform: scale(0.9); }
+
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--user-blip); box-shadow: 0 0 6px var(--user-blip);
+    animation: pulse 1.8s ease-in-out infinite; flex-shrink: 0;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.45;} }
+
+  /* ---------------- Player Container ---------------- */
+  .player-section {
+    display: flex; flex-direction: column; align-items: center; width: 100%;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--accent); opacity: 0.9; margin-bottom: 2px;
+    text-shadow: 0 2px 4px var(--bg-color);
+  }
+
+  h1 {
+    font-family: 'Yatra One', cursive; font-weight: 400; font-size: clamp(32px, 8vw, 42px);
+    text-align: center; margin: 0 0 16px; color: var(--text-primary);
+    text-shadow: 0 2px 8px var(--bg-color);
+  }
+
+  .player-bar {
+    width: 100%;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px) saturate(1.2); -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+  }
+
+  .now-playing-block { margin-bottom: 12px; text-align: center; }
+  .np-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); opacity: 0.95; margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .marquee-wrap { overflow: hidden; white-space: nowrap; width: 100%; position: relative; }
+  .marquee {
+    display: inline-block; font-family: 'Yatra One', cursive; font-size: 18px; color: var(--text-primary);
+    animation: scroll-left 14s linear infinite; padding-left: 100%;
+  }
+  @keyframes scroll-left { from {transform: translateX(0);} to {transform: translateX(-100%);} }
+  .now-playing-block.paused .marquee { animation-play-state: paused; }
+  
+  /* ---------------- Progress Track Bar ---------------- */
+  .progress-container { width: 100%; margin-top: 10px; margin-bottom: 16px; }
+  .progress-bar-bg {
+    width: 100%; height: 6px; background: var(--track-bg);
+    border-radius: 3px; cursor: pointer; position: relative; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent); width: 0%;
+    border-radius: 3px; pointer-events: none; transition: width 0.1s linear;
+  }
+  .time-row {
+    display: flex; justify-content: space-between; margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--text-secondary);
+  }
+
+  /* ---------------- Controls ---------------- */
+  .controls { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 10px;}
+  .btn-icon {
+    background: none; border: none; color: var(--text-primary); cursor: pointer;
+    opacity: 0.8; display: flex; align-items: center; justify-content: center;
+    padding: 8px; transition: opacity 0.15s, transform 0.15s;
+  }
+  .btn-icon:hover { opacity: 1; }
+  .btn-icon:active { transform: scale(0.9); }
+  .btn-icon svg { width: 24px; height: 24px; }
+  
+  .play-btn {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--accent); border: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 6px 16px var(--accent-glow);
+    transition: transform 0.15s; flex-shrink: 0; color: var(--btn-text);
+  }
+  .play-btn:active { transform: scale(0.92); }
+  .play-btn svg { width: 26px; height: 26px; fill: currentColor; }
+
+  .status-row {
+    text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); margin-top: 16px;
+  }
+
+  /* Hidden YouTube API target */
+  #yt-player-wrap { position: fixed; bottom: 0; left: 0; width: 2px; height: 2px; overflow: hidden; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- Map Background -->
+<div id="map-bg"></div>
+<div class="bg-overlay"></div>
+
+<div class="layout-wrapper">
+  
+  <!-- Top Header with Flex Mode Stats -->
+  <div class="top-header">
+    <div class="stats-flex">
+      <!-- Active Global Users (Simulated Live Network) -->
+      <div class="stats-row"><span class="dot"></span><span id="onlineCount">Connecting...</span></div>
+      <!-- IP-based Approximate Location -->
+      <div class="stats-row">📍 <span id="geoLocLabel">Locating network...</span></div>
+      <!-- Weather -->
+      <div class="stats-row">🌤️ <span id="weatherLabel">--°C</span></div>
+      <!-- Local Clock -->
+      <div class="stats-row">⏰ <span id="localTimeLabel">--:-- --</span></div>
+    </div>
+    
+    <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle Theme">🌙</button>
+  </div>
+
+  <!-- Main Player Section -->
+  <div class="player-section">
+    <div class="eyebrow">now spinning with Rishu</div>
+    <h1>Psycho</h1>
+    
+    <div class="player-bar">
+      
+      <div class="now-playing-block paused" id="nowPlayingWrap">
+        <div class="np-label" id="npLabel">LOADING TAPE...</div>
+        <div class="marquee-wrap">
+          <span class="marquee" id="marqueeText">Press play to spin the Jukebox —</span>
+        </div>
+      </div>
+
+      <!-- Functional Track Playing Bar -->
+      <div class="progress-container">
+        <div class="progress-bar-bg" id="progressWrap">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="time-row">
+          <span id="timeCurrent">0:00</span>
+          <span id="timeTotal">0:00</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn-icon" id="prevBtn" aria-label="Previous track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 10 6V6z"/></svg>
+        </button>
+        <button class="play-btn" id="playBtn" aria-label="Play">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="btn-icon" id="nextBtn" aria-label="Next track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4.5 6v12l10-6z"/></svg>
+        </button>
+      </div>
+
+      <div class="status-row" id="statusRow">PAUSED</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Hidden YouTube Container -->
+<div id="yt-player-wrap"><div id="yt-player"></div></div>
+
+<!-- Leaflet JS for Map -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+  /* ---------------- Viewport & Theme Logic ---------------- */
+  function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+  setVH(); window.addEventListener('resize', setVH);
+
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const bodyEl = document.body;
+  
+  const savedTheme = localStorage.getItem('psychoTheme') || 'dark';
+  bodyEl.setAttribute('data-theme', savedTheme);
+  themeToggleBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = bodyEl.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    bodyEl.setAttribute('data-theme', newTheme);
+    themeToggleBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('psychoTheme', newTheme);
+  });
+
+  /* ---------------- Map & IP Geolocation (NO BROWSER PERMISSIONS) ---------------- */
+  // Initialize Leaflet map with zoom controls disabled for aesthetic background
+  let map = L.map('map-bg', { zoomControl: false, attributionControl: false, dragging: true }).setView([20, 0], 2);
+  
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+  // Network State Variables
+  const onlineEl = document.getElementById('onlineCount');
+  let baseUsers = Math.floor(Math.random() * (45 - 15 + 1)) + 15; // Random start base
+  let globalMarkers = [];
+
+  // Function to create a pulsing blip for users
+  function createPulseIcon() {
+    return L.divIcon({ className: 'user-pulse-blip', iconSize: [12, 12] });
+  }
+
+  // Populate map with simulated global users
+  function populateGlobalNetwork(userLat, userLon) {
+    // Drop random blips around the map to simulate global listeners
+    for(let i=0; i<18; i++) {
+      let rLat = (Math.random() * 140) - 70; // random lat between -70 and 70
+      let rLon = (Math.random() * 360) - 180; // random lon
+      let m = L.marker([rLat, rLon], {icon: createPulseIcon()}).addTo(map);
+      globalMarkers.push(m);
+    }
+    // Drop a few near the user's approximate country to make it feel active nearby
+    if(userLat && userLon) {
+      for(let i=0; i<4; i++) {
+        let rLat = userLat + (Math.random() * 10 - 5);
+        let rLon = userLon + (Math.random() * 10 - 5);
+        let m = L.marker([rLat, rLon], {icon: createPulseIcon()}).addTo(map);
+        globalMarkers.push(m);
+      }
+    }
+  }
+
+  // Dynamic user count update loop
+  setInterval(() => {
+    let change = Math.floor(Math.random() * 5) - 2; // fluctuates slightly
+    baseUsers = Math.max(8, baseUsers + change);
+    onlineEl.textContent = `${baseUsers} users on network`;
+  }, 4500);
+
+  /* Completely IP-Based Location (Silently fetches coordinates from IP address) */
+  async function initIPGeoAndWeather() {
+    const geoLabel = document.getElementById('geoLocLabel');
+    const weatherLabel = document.getElementById('weatherLabel');
+    const timeLabel = document.getElementById('localTimeLabel');
+
+    // Live Clock
+    setInterval(() => {
+      const now = new Date();
+      timeLabel.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }, 1000);
+
+    try {
+      // Fetch Location based on Network IP ONLY (Silent, no browser prompt required)
+      const ipRes = await fetch('https://get.geojs.io/v1/ip/geo.json');
+      const ipData = await ipRes.json();
+      
+      const lat = parseFloat(ipData.latitude);
+      const lon = parseFloat(ipData.longitude);
+      const city = ipData.city || ipData.region || "Unknown Region";
+      
+      geoLabel.textContent = `~ ${city} (IP)`;
+
+      // Center map on user's approximate IP location smoothly
+      map.flyTo([lat, lon], 4, { duration: 3 });
+
+      // Draw an approximate radius circle for the user instead of exact pinpoint
+      L.circle([lat, lon], {
+        color: 'var(--user-blip)',
+        fillColor: 'var(--user-blip)',
+        fillOpacity: 0.15,
+        radius: 120000 // Large approximate radius
+      }).addTo(map);
+
+      // Add a specific pulsing blip for the user in the center
+      L.marker([lat, lon], {icon: createPulseIcon()}).addTo(map);
+
+      // Populate other users globally
+      populateGlobalNetwork(lat, lon);
+      onlineEl.textContent = `${baseUsers} users on network`;
+
+      // Fetch Weather based on approximate IP coordinates
+      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const weatherData = await weatherRes.json();
+      if(weatherData && weatherData.current_weather) {
+        weatherLabel.textContent = `${weatherData.current_weather.temperature}°C`;
+      }
+    } catch(err) {
+      geoLabel.textContent = "Network Loc Failed";
+      weatherLabel.textContent = "--°C";
+      populateGlobalNetwork(0, 0); 
+      onlineEl.textContent = `${baseUsers} users on network`;
+    }
+  }
+  
+  initIPGeoAndWeather();
+
+  /* ---------------- YouTube Player & Progress Logic ---------------- */
+  // Massive Default Master Playlist (90s Hits)
+  const MASTER_PLAYLIST_ID = "PLinVjP-aRmlv0g0_1w8lOs9fkfGRunKzi";
+  
+  let player, isPlaying = false, ytReady = false, pendingPlay = false, errorSkips = 0;
+  let progressTimer;
+
+  const nowPlayingWrap = document.getElementById('nowPlayingWrap');
+  const npLabel = document.getElementById('npLabel');
+  const marqueeText = document.getElementById('marqueeText');
+  const statusRow = document.getElementById('statusRow');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const timeCurrent = document.getElementById('timeCurrent');
+  const timeTotal = document.getElementById('timeTotal');
+
+  function formatTime(seconds) {
+    if(!seconds || isNaN(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function startProgressTracking() {
+    if(progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if(player && typeof player.getCurrentTime === 'function' && isPlaying) {
+        const current = player.getCurrentTime();
+        const duration = player.getDuration();
+        if(duration > 0) {
+          const percent = (current / duration) * 100;
+          progressFill.style.width = percent + '%';
+          timeCurrent.textContent = formatTime(current);
+          timeTotal.textContent = formatTime(duration);
+        }
+      }
+    }, 1000);
+  }
+
+  function updatePlaybackUI(msg){
+    nowPlayingWrap.classList.toggle('paused', !isPlaying);
+    playIcon.innerHTML = isPlaying ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+    statusRow.textContent = msg || (isPlaying ? 'NOW PLAYING' : 'PAUSED');
+  }
+
+  function updateNowPlaying(){
+    try{
+      const data = player.getVideoData();
+      if(data && data.title){
+        marqueeText.textContent = data.title + '   —   ' + (data.author || '') + '   —   ';
+      }
+      const idx = (player.getPlaylistIndex && player.getPlaylistIndex() >= 0) ? player.getPlaylistIndex() : null;
+      if(idx !== null){ npLabel.textContent = `TRACK ${idx+1}`; }
+    }catch(e){}
+  }
+
+  function onYouTubeIframeAPIReady(){
+    player = new YT.Player('yt-player', {
+      height:'200', width:'200',
+      playerVars:{ 
+        listType:'playlist', 
+        list: MASTER_PLAYLIST_ID, 
+        playsinline:1, 
+        vq: 'hd1080',
+        origin: window.location.origin 
+      },
+      events:{ 
+        onReady: onPlayerReady, 
+        onStateChange: onPlayerStateChange, 
+        onError: onPlayerError 
+      }
+    });
+  }
+  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+  function onPlayerReady(){
+    ytReady = true;
+    player.setVolume(100);
+    if(pendingPlay){ pendingPlay = false; player.playVideo(); }
+    updatePlaybackUI('READY. TAP PLAY');
+  }
+
+  function onPlayerStateChange(e){
+    if(e.data === YT.PlayerState.PLAYING){
+      isPlaying = true; errorSkips = 0;
+      updateNowPlaying(); 
+      updatePlaybackUI('NOW PLAYING');
+      startProgressTracking();
+    } else if(e.data === YT.PlayerState.PAUSED){
+      isPlaying = false; 
+      updatePlaybackUI('PAUSED');
+      clearInterval(progressTimer);
+    } else if(e.data === YT.PlayerState.BUFFERING){
+      updatePlaybackUI('BUFFERING...');
+    }
+  }
+
+  function onPlayerError(e){
+    errorSkips++;
+    if(errorSkips <= 5){
+      updatePlaybackUI('SKIPPING UNAVAILABLE TRACK...');
+      setTimeout(() => { if(ytReady) player.nextVideo(); }, 800);
+    } else {
+      updatePlaybackUI('STREAM ERROR');
+    }
+  }
+
+  // Click on progress bar to seek
+  progressWrap.addEventListener('click', (e) => {
+    if(ytReady && player && typeof player.getDuration === 'function') {
+      const rect = progressWrap.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      const seekTime = percent * player.getDuration();
+      player.seekTo(seekTime, true);
+      progressFill.style.width = (percent * 100) + '%';
+      timeCurrent.textContent = formatTime(seekTime);
+    }
+  });
+
+  playBtn.addEventListener('click', () => {
+    if(!ytReady){ pendingPlay = true; updatePlaybackUI('CONNECTING...'); return; }
+    if(isPlaying){ player.pauseVideo(); } else { player.playVideo(); }
+  });
+  
+  document.getElementById('nextBtn').addEventListener('click', () => { 
+    if(ytReady) { player.nextVideo(); progressFill.style.width = '0%'; } 
+  });
+  
+  document.getElementById('prevBtn').addEventListener('click', () => { 
+    if(ytReady) { player.previousVideo(); progressFill.style.width = '0%'; } 
+  });
+
+  /* ---------------- Inject YouTube API ---------------- */
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.body.appendChild(tag);
+</script>
+
+</body>
+</html>
