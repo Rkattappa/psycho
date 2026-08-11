@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Psycho // Jukebox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#D4A94A;
+    --gold-bright:#E9C876;
+    --cream:#F6EFD8;
+    --teal-glow:#3FA79E;
+    --wood-dark:#301F15;
+    --vh: 1vh;
+    --brightness-level: 1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:calc(var(--vh) * 100);overflow:hidden;}
+  body{
+    font-family:'Poppins',sans-serif;
+    color:var(--cream);
+    position:relative;
+    filter: brightness(var(--brightness-level));
+    transition: filter 0.2s ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; animation-iteration-count:1 !important; transition:none !important;}
+  }
+
+  .bg-video-container{
+    position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:0;overflow:hidden;background:#000;
+  }
+  .bg-video-container video{
+    width:100%;height:100%;object-fit:cover;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);
+    opacity:0.65;
+  }
+  .bg-overlay{
+    position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(30,19,13,0.6) 100%);z-index:1;pointer-events:none;
+  }
+
+  .plaque{position:fixed;top:max(14px, env(safe-area-inset-top));right:14px;z-index:5;
+    background:rgba(48,31,21,0.65);backdrop-filter:blur(8px);
+    border-radius:10px;padding:8px 12px;
+    box-shadow:0 8px 18px -6px rgba(0,0,0,0.4);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--cream);
+    display:flex;flex-direction:column;gap:5px;
+    border:1px solid rgba(212,169,74,0.35);}
+  .plaque-row{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#4CAF6E;box-shadow:0 0 6px #4CAF6E;animation:pulse 1.8s ease-in-out infinite;flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+
+  .stage{position:relative;z-index:2;width:100%;max-width:420px;margin:0 auto;
+    height:calc(var(--vh) * 100);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    padding:16px 16px max(16px, env(safe-area-inset-bottom));}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:clamp(9px,2.4vw,10.5px);letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--gold-bright);text-align:center;opacity:0.9;margin-bottom:2px;text-shadow:0 2px 4px rgba(0,0,0,0.8);}
+  h1{font-family:'Yatra One',cursive;font-weight:400;font-size:clamp(22px,6vw,30px);text-align:center;margin:0 0 12px;
+    color:var(--cream);text-shadow:0 2px 8px rgba(0,0,0,0.8);}
+
+  .mood-selector{
+    width:100%;display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;
+    scrollbar-width:none;
+  }
+  .mood-selector::-webkit-scrollbar{display:none;}
+  .mood-pill{
+    background:rgba(20,12,10,0.6);border:1px solid rgba(212,169,74,0.3);color:var(--cream);
+    padding:6px 12px;border-radius:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;
+  }
+  .mood-pill.active{background:var(--gold);color:#2A1A16;border-color:var(--gold-bright);font-weight:600;}
+
+  .player-bar{
+    width:100%;
+    background:rgba(20,12,10,0.75);
+    backdrop-filter:blur(12px) saturate(1.2);
+    -webkit-backdrop-filter:blur(12px) saturate(1.2);
+    border:1px solid rgba(212,169,74,0.35);
+    border-radius:18px;
+    padding:14px 18px 12px;
+    box-shadow:0 20px 40px -18px rgba(0,0,0,0.7);
+  }
+
+  .now-playing-block{margin-bottom:10px;}
+  .np-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-glow);opacity:0.95;margin-bottom:4px;}
+  .marquee-wrap{overflow:hidden;white-space:nowrap;}
+  .marquee{display:inline-block;font-family:'Yatra One',cursive;font-size:16px;color:var(--cream);
+    animation:scroll-left 16s linear infinite;padding-left:100%;}
+  @keyframes scroll-left{from{transform:translateX(0);}to{transform:translateX(-100%);}}
+  .now-playing-block.paused .marquee{animation-play-state:paused;}
+  .np-meta{font-size:10.5px;color:var(--cream);opacity:0.75;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'IBM Plex Mono',monospace;}
+
+  .controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:6px;}
+  .btn-icon{background:none;border:none;color:var(--cream);cursor:pointer;opacity:0.8;display:flex;align-items:center;justify-content:center;padding:6px;transition:opacity 0.15s, transform 0.15s;}
+  .btn-icon:hover{opacity:1;}
+  .btn-icon:active{transform:scale(0.9);}
+  .btn-icon svg{width:20px;height:20px;}
+  .play-btn{width:50px;height:50px;border-radius:50%;background:linear-gradient(155deg, var(--gold-bright), var(--gold));border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 8px 18px -4px rgba(212,169,74,0.55), inset 0 1px 0 rgba(255,255,255,0.5);
+    transition:transform 0.15s;flex-shrink:0;}
+  .play-btn:active{transform:scale(0.92);}
+  .play-btn svg{width:20px;height:20px;fill:#2A1A16;}
+
+  .adjustments-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;padding-top:10px;
+    border-top:1px solid rgba(255,255,255,0.1);
+  }
+  .slider-control{display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--cream);opacity:0.85;}
+  .slider-control label{display:flex;justify-content:space-between;}
+  .slider-control input[type=range]{
+    width:100%;accent-color:var(--gold);height:4px;cursor:pointer;background:rgba(255,255,255,0.2);border-radius:2px;
+  }
+
+  .status-row{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream);opacity:0.6;margin-top:8px;}
+  .yt-fallback{display:none;text-align:center;margin-top:6px;}
+  .yt-fallback a{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--teal-glow);text-decoration:underline;}
+
+  .footer-note{text-align:center;font-size:9.5px;color:var(--cream);opacity:0.5;margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+
+  #yt-player-wrap{position:fixed;bottom:0;left:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<div class="bg-video-container" aria-hidden="true">
+  <!-- Replaced with proper Google Drive direct download parameter & removed crossorigin constraint to prevent blocking -->
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="https://drive.google.com/uc?export=download&id=1yWNKHo1tbMJPumAxEzMGbHDU9Wa3SgFr" type="video/mp4">
+  </video>
+  <div class="bg-overlay"></div>
+</div>
+
+<div class="plaque">
+  <div class="plaque-row"><span class="dot"></span><span id="onlineCount">1 here now</span></div>
+  <div class="plaque-row">📍<span id="geoLocLabel">Detecting location...</span></div>
+  <div class="plaque-row">🌤️<span id="weatherLabel">Loading weather...</span></div>
+  <div class="plaque-row">⏰<span id="localTimeLabel">--:-- --</span></div>
+</div>
+
+<div class="stage">
+  <div class="eyebrow">now spinning with Rishu</div>
+  <h1>Psycho</h1>
+
+  <div class="mood-selector" id="moodSelector">
+    <button class="mood-pill active" data-mood="90s">90s</button>
+    <button class="mood-pill" data-mood="80s">80s</button>
+    <button class="mood-pill" data-mood="70s">70s</button>
+    <button class="mood-pill" data-mood="sad">Sad</button>
+    <button class="mood-pill" data-mood="chill">Chill</button>
+    <button class="mood-pill" data-mood="rock">Rock</button>
+    <button class="mood-pill" data-mood="classic">Classic</button>
+    <button class="mood-pill" data-mood="international">International</button>
+    <button class="mood-pill" data-mood="lofi">Lofi</button>
+    <button class="mood-pill" data-mood="latest">Latest</button>
+    <button class="mood-pill" data-mood="launched">Just launched</button>
+  </div>
+
+  <div class="player-bar">
+    <div class="now-playing-block paused" id="nowPlayingWrap">
+      <div class="np-label" id="npLabel">Loading audio stream...</div>
+      <div class="marquee-wrap">
+        <span class="marquee" id="marqueeText">Select a mood to start streaming —</span>
+      </div>
+      <div class="np-meta" id="npMeta">Psycho HD Jukebox</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-icon" id="prevBtn" aria-label="Previous track">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 10 6V6z"/></svg>
+      </button>
+      <button class="play-btn" id="playBtn" aria-label="Play">
+        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="btn-icon" id="nextBtn" aria-label="Next track">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4.5 6v12l10-6z"/></svg>
+      </button>
+    </div>
+
+    <div class="adjustments-grid">
+      <div class="slider-control">
+        <label><span>VOLUME</span><span id="volVal">100%</span></label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="100">
+      </div>
+      <div class="slider-control">
+        <label><span>BRIGHTNESS</span><span id="brightVal">100%</span></label>
+        <input type="range" id="brightnessSlider" min="40" max="150" value="100">
+      </div>
+    </div>
+
+    <div class="status-row" id="statusRow">tap play to load mood</div>
+    <div class="yt-fallback" id="ytFallback">Not playing? <a id="ytFallbackLink" href="#" target="_blank" rel="noopener">Open track on YouTube</a></div>
+  </div>
+
+  <div class="footer-note">Infinite HD multi-genre streaming</div>
+</div>
+
+<div id="yt-player-wrap"><div id="yt-player"></div></div>
+
+<script>
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+
+  async function initGeoAndWeather() {
+    const geoLabel = document.getElementById('geoLocLabel');
+    const weatherLabel = document.getElementById('weatherLabel');
+    const timeLabel = document.getElementById('localTimeLabel');
+
+    setInterval(() => {
+      const now = new Date();
+      timeLabel.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }, 1000);
+
+    if('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const geoData = await geoRes.json();
+          const city = geoData.address.city || geoData.address.town || geoData.address.village || "Local Area";
+          geoLabel.textContent = city;
+
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+          const weatherData = await weatherRes.json();
+          if(weatherData && weatherData.current_weather) {
+            weatherLabel.textContent = `${weatherData.current_weather.temperature}°C`;
+          } else {
+            weatherLabel.textContent = "Temp N/A";
+          }
+        } catch(e) {
+          geoLabel.textContent = "Location locked";
+          weatherLabel.textContent = "Weather N/A";
+        }
+      }, () => {
+        geoLabel.textContent = "Location restricted";
+        weatherLabel.textContent = "Weather N/A";
+      });
+    } else {
+      geoLabel.textContent = "Unsupported";
+      weatherLabel.textContent = "N/A";
+    }
+  }
+  initGeoAndWeather();
+
+  const SESSION_ID = 'sess-' + Math.random().toString(36).slice(2);
+  const onlineEl = document.getElementById('onlineCount');
+  
+  function trackPresence() {
+    try {
+      let activeUsers = JSON.parse(localStorage.getItem('psycho_active_users') || '{}');
+      const now = Date.now();
+      Object.keys(activeUsers).forEach(id => {
+        if(now - activeUsers[id] > 30000) delete activeUsers[id];
+      });
+      activeUsers[SESSION_ID] = now;
+      localStorage.setItem('psycho_active_users', JSON.stringify(activeUsers));
+      const count = Object.keys(activeUsers).length;
+      onlineEl.textContent = (count < 1 ? 1 : count) + ' here now';
+    } catch(e) {
+      onlineEl.textContent = '1 here now';
+    }
+  }
+  trackPresence();
+  setInterval(trackPresence, 10000);
+
+  // Mapped exact Playlist IDs to match buttons perfectly
+  const YT_PLAYLISTS = {
+    "90s": "PLinVjP-aRmlv0g0_1w8lOs9fkfGRunKzi",
+    "80s": "PL45EE7627448A6F06",
+    "70s": "PL7313FB79CD2E3A06",
+    "sad": "PL4fGSI1pDJn6O1WUexxMDqSzDmeRGzn-p",
+    "chill": "PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj",
+    "rock": "PL6B30C4D024508492",
+    "classic": "PLZHQObOWTQDPD3MswM2xVvBmG4PKFxPkk",
+    "international": "PLw9iWmRUz5TNW6bI4H0z3Z7e0o9O1tO2v",
+    "lofi": "PLDWkWqjvjV8WpB5o6A42XnUjM_dFw7aR5",
+    "latest": "PLgzTt0k8mXzE1-Pj33j52u4qW5X_b0Oq7",
+    "launched": "PLMC9KNkIncKvKuZ3xJd_-2L4W4wV8H0oR"
+  };
+
+  let currentMood = "90s";
+  let player, isPlaying = false, ytReady = false, pendingPlay = false, errorSkips = 0;
+
+  const nowPlayingWrap = document.getElementById('nowPlayingWrap');
+  const npLabel = document.getElementById('npLabel');
+  const marqueeText = document.getElementById('marqueeText');
+  const npMeta = document.getElementById('npMeta');
+  const statusRow = document.getElementById('statusRow');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const ytFallback = document.getElementById('ytFallback');
+  const ytFallbackLink = document.getElementById('ytFallbackLink');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volVal = document.getElementById('volVal');
+  const brightnessSlider = document.getElementById('brightnessSlider');
+  const brightVal = document.getElementById('brightVal');
+
+  function updatePlaybackUI(msg){
+    nowPlayingWrap.classList.toggle('paused', !isPlaying);
+    playIcon.innerHTML = isPlaying ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+    statusRow.textContent = msg || (isPlaying ? 'now playing' : 'paused');
+  }
+
+  function updateNowPlaying(){
+    try{
+      const data = player.getVideoData();
+      if(data && data.title){
+        marqueeText.textContent = data.title + '   —   ' + (data.author || '') + '   —   ';
+        npMeta.textContent = (data.author || "Psycho Stream") + ' · Mood: ' + currentMood.toUpperCase();
+        if(data.video_id){
+          ytFallbackLink.href = 'https://www.youtube.com/watch?v=' + data.video_id;
+        }
+      }
+      const idx = (player.getPlaylistIndex && player.getPlaylistIndex() >= 0) ? player.getPlaylistIndex() : null;
+      if(idx !== null){ npLabel.textContent = `Mood: ${currentMood.toUpperCase()} · Track ${idx+1}`; }
+    }catch(e){}
+  }
+
+  function onYouTubeIframeAPIReady(){
+    player = new YT.Player('yt-player', {
+      height:'200', width:'200',
+      playerVars:{ 
+        listType:'playlist', 
+        list: YT_PLAYLISTS[currentMood], 
+        playsinline:1, 
+        vq: 'hd1080', 
+        origin: window.location.origin 
+      },
+      events:{ onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
+    });
+  }
+  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+  function onPlayerReady(){
+    ytReady = true;
+    player.setVolume(100);
+    if(pendingPlay){ pendingPlay = false; player.playVideo(); }
+  }
+
+  function onPlayerStateChange(e){
+    if(e.data === YT.PlayerState.PLAYING){
+      isPlaying = true; errorSkips = 0;
+      ytFallback.style.display = 'none';
+      updateNowPlaying(); updatePlaybackUI();
+    } else if(e.data === YT.PlayerState.PAUSED){
+      isPlaying = false; updatePlaybackUI();
+    } else if(e.data === YT.PlayerState.BUFFERING){
+      updatePlaybackUI('loading stream…');
+    }
+  }
+
+  function onPlayerError(e){
+    errorSkips++;
+    if(errorSkips <= 5){
+      updatePlaybackUI('track unavailable, skipping…');
+      setTimeout(() => { if(ytReady) player.nextVideo(); }, 600);
+    }
+  }
+
+  playBtn.addEventListener('click', () => {
+    if(!ytReady){ pendingPlay = true; updatePlaybackUI('loading tape…'); return; }
+    if(isPlaying){ player.pauseVideo(); } else { player.playVideo(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => { if(ytReady) player.nextVideo(); });
+  document.getElementById('prevBtn').addEventListener('click', () => { if(ytReady) player.previousVideo(); });
+
+  // Mood filter logic forced to immediately load specific YouTube playlist array upon click
+  document.querySelectorAll('.mood-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      currentMood = e.target.getAttribute('data-mood');
+      
+      if(ytReady && player && typeof player.loadPlaylist === 'function') {
+        player.loadPlaylist({
+          list: YT_PLAYLISTS[currentMood],
+          listType: 'playlist',
+          index: 0
+        });
+        isPlaying = true; // Auto-update state so UI reflects playing status
+        updatePlaybackUI(`switched to ${currentMood}`);
+        setTimeout(updateNowPlaying, 1000);
+      }
+    });
+  });
+
+  volumeSlider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    volVal.textContent = val + '%';
+    if(ytReady && player.setVolume) player.setVolume(val);
+  });
+
+  brightnessSlider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    brightVal.textContent = val + '%';
+    document.documentElement.style.setProperty('--brightness-level', val / 100);
+  });
+
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.body.appendChild(tag);
+</script>
+
+</body>
+</html>
